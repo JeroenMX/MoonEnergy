@@ -14,19 +14,26 @@
 
 <script setup>
 import { ref, onUpdated } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 
 const userInput = ref('');
 const messages = ref([]);
 const isLoading = ref(false);
 const messagesContainer = ref(null);
+const sessionId = uuidv4();
 
 const sendMessage = async () => {
   if (userInput.value.trim() === '' || isLoading.value) return;
 
-  const userMessage = userInput.value;
-  messages.value.push({ type: 'user', text: userMessage });
+  const message = userInput.value;
+  messages.value.push({ type: 'user', text: message });
   userInput.value = '';
   isLoading.value = true;
+
+  const payload = {
+    message,
+    sessionId
+  };
 
   try {
     const response = await fetch('/api/chat', {
@@ -34,7 +41,7 @@ const sendMessage = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(userMessage),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {

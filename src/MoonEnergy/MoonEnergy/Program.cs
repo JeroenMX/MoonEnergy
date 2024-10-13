@@ -1,5 +1,6 @@
 using MoonEnergy;
 using MoonEnergy.ChatTools;
+using MoonEnergy.ChatTools.Base;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: true);
@@ -12,7 +13,9 @@ builder.Services.AddControllers();
 
 builder.Services.Configure<OpenAiConfig>(builder.Configuration.GetSection("OpenAI"));
 
-builder.Services.AddScoped<IChatTool, WeatherTool>();
+builder.Services.AddScoped<IChatTool, GetWeatherTool>();
+builder.Services.AddScoped<IChatTool, GetTermijnbedragTool>();
+builder.Services.AddScoped<IChatTool, SetTermijnbedragTool>();
 
 var app = builder.Build();
 

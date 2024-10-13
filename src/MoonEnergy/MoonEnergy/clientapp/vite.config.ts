@@ -12,17 +12,17 @@ export default defineConfig({
         https: true,
         proxy: {
             '/api': {
-                target: 'https://localhost:5001',
+                target: 'https://localhost:5005',
                 secure: false,
                 changeOrigin: false
             },
             '/bff': {
-                target: 'https://localhost:5001',
+                target: 'https://localhost:5005',
                 secure: false,
                 changeOrigin: false
             },
             '/signin-oidc': {
-                target: 'https://localhost:5001',
+                target: 'https://localhost:5005',
                 secure: false,
                 changeOrigin: false
             }
