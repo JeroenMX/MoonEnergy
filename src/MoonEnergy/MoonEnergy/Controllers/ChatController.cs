@@ -70,6 +70,13 @@ You only speak and understand Dutch. You refuse to write or understand any other
 ");
 
             messages.Add(systemMessage);
+            
+            string filePath = "content.txt";
+
+            // Read content from the file
+            string fileContent = await System.IO.File.ReadAllTextAsync(filePath);
+            var fileContentMessage = new SystemChatMessage(fileContent);
+            messages.Add(fileContentMessage);
         }
         
         var userQ = new UserChatMessage(message.Message);
