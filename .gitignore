@@ -403,3 +403,4 @@ FodyWeavers.xsd
 output/
 artifacts/
 appsettings.Local.json
+keys/
