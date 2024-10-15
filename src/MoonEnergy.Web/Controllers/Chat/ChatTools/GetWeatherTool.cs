@@ -1,7 +1,8 @@
-﻿using MoonEnergy.ChatTools.Base;
+﻿using System.Text.Json;
+using MoonEnergy.Controllers.Chat.Base;
 using OpenAI.Chat;
 
-namespace MoonEnergy.ChatTools;
+namespace MoonEnergy.Controllers.Chat.ChatTools;
 
 public class GetWeatherTool : IChatTool
 {
@@ -24,8 +25,8 @@ public class GetWeatherTool : IChatTool
 
         return tool;
     }
-    
-    public string Call(ChatToolCall chatToolCall)
+
+    public ChatToolResponse Call(ChatToolCall chatToolCall)
     {
         // Validate arguments before using them; it's not always guaranteed to be valid JSON!
 
@@ -35,23 +36,23 @@ public class GetWeatherTool : IChatTool
         {
             throw new ArgumentException("Location is required");
         }
-        
+
         return GetCurrentWeather(parameters.Location, parameters.Unit);
     }
-    
+
     class WeatherParameters
     {
         public string? Location { get; set; }
         public string? Unit { get; set; }
     }
 
-    private static string GetCurrentWeather(string location, string? unit)
+    private static ChatToolResponse GetCurrentWeather(string location, string? unit)
     {
         unit ??= "celsius";
-        
+
         var random = new Random();
         int temperature = random.Next(-50, 50);
-        
-        return $"{temperature} {unit}";
+
+        return new ChatToolResponse(ChatActionType.Render, $"{temperature} {unit}", JsonSerializer.Serialize(new { temperature, unit }));
     }
 }

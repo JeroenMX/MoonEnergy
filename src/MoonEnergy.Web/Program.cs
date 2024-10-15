@@ -1,8 +1,8 @@
 using IdentityModel.Client;
 using Microsoft.IdentityModel.Tokens;
 using MoonEnergy;
-using MoonEnergy.ChatTools;
-using MoonEnergy.ChatTools.Base;
+using MoonEnergy.Controllers.Chat.Base;
+using MoonEnergy.Controllers.Chat.ChatTools;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: true);
@@ -48,6 +48,7 @@ builder.Services.Configure<OpenAiConfig>(builder.Configuration.GetSection("OpenA
 builder.Services.AddScoped<IChatTool, GetWeatherTool>();
 builder.Services.AddScoped<IChatTool, GetTermijnbedragTool>();
 builder.Services.AddScoped<IChatTool, SetTermijnbedragTool>();
+builder.Services.AddScoped<IChatTool, LoginTool>();
 
 builder.Services.AddSpaStaticFiles(configuration => { configuration.RootPath = "clientapp"; });
 

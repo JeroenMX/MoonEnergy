@@ -1,7 +1,8 @@
-﻿using MoonEnergy.ChatTools.Base;
+﻿using System.Text.Json;
+using MoonEnergy.Controllers.Chat.Base;
 using OpenAI.Chat;
 
-namespace MoonEnergy.ChatTools;
+namespace MoonEnergy.Controllers.Chat.ChatTools;
 
 public class GetTermijnbedragTool : IChatTool
 {
@@ -24,7 +25,7 @@ public class GetTermijnbedragTool : IChatTool
         return tool;
     }
     
-    public string Call(ChatToolCall chatToolCall)
+    public ChatToolResponse Call(ChatToolCall chatToolCall)
     {
         // Validate arguments before using them; it's not always guaranteed to be valid JSON!
 
@@ -49,8 +50,16 @@ public class GetTermijnbedragTool : IChatTool
         public string? PostcodeHuisnummer { get; set; }
     }
 
-    private static string GetTermijnbedrag(string klantnummer, string postcodeHuisnummer)
+    private static ChatToolResponse GetTermijnbedrag(string klantnummer, string postcodeHuisnummer)
     {
-        return "actual: 30,00. ideal: 70. minimum: 60. max: 100. feedback: Het termijnbedrag is veel te laag. Dit zou zo snel mogelijk moeten worden aangepast.";
+        var actual = 30;
+        var ideal = 70;
+        var min = 60;
+        var max = 100;
+        
+        var text = $"actual: {actual}. ideal: {ideal}. minimum: {min}. max: {max}. feedback: Het termijnbedrag is veel te laag. Dit zou zo snel mogelijk moeten worden aangepast.";
+        var json = JsonSerializer.Serialize(new { actual, ideal, min, max, text });
+
+        return new ChatToolResponse(ChatActionType.Render, text, json);
     }
 }
