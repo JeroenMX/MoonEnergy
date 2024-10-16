@@ -62,23 +62,37 @@ public class SetTermijnbedragTool : IChatTool
         public string? Termijnbedrag { get; set; }
     }
 
-    private static ChatToolResponse SetTermijnbedrag(string klantnummer, string postcodeHuisnummer,
-        string termijnbedrag)
+    private ChatToolResponse SetTermijnbedrag(string klantnummer, string postcodeHuisnummer, string termijnbedrag)
     {
         var tb = int.Parse(termijnbedrag);
 
         if (tb < 60)
         {
-            return new ChatToolResponse(ChatActionType.Render, "Het termijnbedrag mag niet lager zijn dan 60 euro",
-                JsonSerializer.Serialize(new { }));
+            return new ChatToolResponse
+            {
+                ActionType = ChatActionType.Render,
+                Name = Name,
+                Text = "Het termijnbedrag mag niet lager zijn dan 60 euro",
+                Json = JsonSerializer.Serialize(new { })
+            };
         }
         else if (tb > 100)
         {
-            return new ChatToolResponse(ChatActionType.Render, "Het termijnbedrag mag niet hoger zijn dan 100 euro",
-                JsonSerializer.Serialize(new { }));
+            return new ChatToolResponse
+            {
+                ActionType = ChatActionType.Render,
+                Name = Name,
+                Text = "Het termijnbedrag mag niet hoger zijn dan 100 euro",
+                Json = JsonSerializer.Serialize(new { })
+            };
         }
 
-        return new ChatToolResponse(ChatActionType.Render, $"Het termijnbedrag is aangepast naar {termijnbedrag} euro",
-            JsonSerializer.Serialize(new { }));
+        return new ChatToolResponse
+        {
+            ActionType = ChatActionType.Render,
+            Name = Name,
+            Text = $"Het termijnbedrag is aangepast naar {termijnbedrag} euro",
+            Json = JsonSerializer.Serialize(new { })
+        };
     }
 }

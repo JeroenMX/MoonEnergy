@@ -7,7 +7,8 @@
 
 interface ChatAction {
     action: ChatActionType;
-    actionContentAsJson?: string;
+    name: string;
+    contentAsJson: string;
 }
 
 interface ChatMessage

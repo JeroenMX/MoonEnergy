@@ -54,7 +54,11 @@ They are now logged in. The conversation resumes and any previous question can n
                 {
                     var toolContent = GetToolCallContent(toolCall);
                     chatInteraction.Actions.Add(new ChatAction
-                        { Action = toolContent.ActionType, ActionContentAsJson = toolContent.Json });
+                    {
+                        Action = toolContent.ActionType,
+                        Name = toolContent.Name,
+                        ActionContentAsJson = toolContent.Json
+                    });
                     chatInteraction.Messages.Add(new ToolChatMessage(toolCall.Id, toolContent.Text));
                 }
 
@@ -112,7 +116,11 @@ Mention their first name in further conversations. When a tool requires a logged
             {
                 var toolContent = GetToolCallContent(toolCall);
                 chatInteraction.Actions.Add(new ChatAction
-                    { Action = toolContent.ActionType, ActionContentAsJson = toolContent.Json });
+                {
+                    Action = toolContent.ActionType,
+                    Name = toolContent.Name,
+                    ActionContentAsJson = toolContent.Json
+                });
                 chatInteraction.Messages.Add(new ToolChatMessage(toolCall.Id, toolContent.Text));
             }
 

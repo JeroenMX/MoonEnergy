@@ -2,8 +2,13 @@
   <div id="currentUser">{{ userName }}</div>
   <div class="chat-container">
     <div class="messages" ref="messagesContainer">
-      <div v-for="(message, index) in messages" :key="index" :class="message.type">
-        {{ message.text }}
+      <div v-for="(interaction, chatIndex) in chat" :key="chatIndex">
+        <div v-for="(message, messageIndex) in interaction.messages" :key="index" :class="message.type">
+          {{ message.text }}
+        </div>
+        <div v-for="(action, actionIndex) in interaction.actions" :key="index">
+          <component :is="components[action.name]" :data="action.contentAsJson"/>
+        </div>
       </div>
     </div>
     <div class="input-area">
@@ -18,18 +23,20 @@ import {ref, onUpdated, onMounted} from 'vue';
 import {v4 as uuidv4} from 'uuid';
 import axios, {AxiosResponse} from "axios";
 import {ChatInteraction} from "./Models.ts";
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faSignInAlt } from '@fortawesome/free-solid-svg-icons'
+import LoginComponent from "./LoginComponent.vue";
+import GetTermijnBedragComponent from "./GetTermijnBedragComponent.vue";
 
 const userInput = ref('');
-const messages = ref([]);
+const chat = ref<ChatInteraction[]>([]);
 const isLoading = ref(false);
 const messagesContainer = ref(null);
-
-
 const sessionId = ref('');
-
 const userName = ref()
+
+const components = {
+  LoginTool: LoginComponent,
+  GetTermijnbedragTool: GetTermijnBedragComponent
+};
 
 const getUser = async () => {
   const config = {
@@ -77,18 +84,19 @@ onMounted(async () => {
     body: JSON.stringify(sessionId.value),
   });
 
-  const conversation = await response.json();
-
-  conversation.forEach(i => {
-    renderInteraction(i);
-  });
+  chat.value = await response.json();
 });
 
 const sendMessage = async () => {
   if (userInput.value.trim() === '' || isLoading.value) return;
 
   const message = userInput.value;
-  messages.value.push({type: 'user', text: message});
+
+  const messageText = userInput.value;
+  const userMessage: ChatMessage = {type: 'user', text: messageText};
+  const userChatInteraction: ChatInteraction = {messages: [userMessage], actions: []};
+  chat.value.push(userChatInteraction);
+
   userInput.value = '';
   isLoading.value = true;
 
@@ -111,7 +119,7 @@ const sendMessage = async () => {
     }
 
     const chatInteraction = await response.json();
-    renderInteraction(chatInteraction);
+    chat.value.push(chatInteraction);
 
     chatInteraction.actions.forEach(action => {
       // login
@@ -129,18 +137,6 @@ const sendMessage = async () => {
     isLoading.value = false;
   }
 };
-
-function renderInteraction(chatInteraction: ChatInteraction) {
-  chatInteraction.messages.forEach(m => {
-    messages.value.push({type: m.type, text: m.text});
-  });
-  chatInteraction.actions.forEach(a => {
-    // dont do this. render a nice login picto
-    if (a.action === 1) {
-      messages.value.push({type: 'sys', text: 'user logged in !!'});
-    }
-  })
-}
 
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -171,7 +167,7 @@ onUpdated(() => {
 }
 
 .messages {
-  height: 300px;
+  height: 600px;
   overflow-y: auto;
   margin-bottom: 20px;
   padding: 10px;

@@ -29,7 +29,12 @@ Mention they will be redirected shortly to complete the login procedure.
 
     public ChatToolResponse Call(ChatToolCall chatToolCall)
     {
-        return new ChatToolResponse(ChatActionType.Login, "Redirecting to the login page",
-            JsonSerializer.Serialize(new { }));
+        return new ChatToolResponse
+        {
+            ActionType = ChatActionType.Login,
+            Name = Name,
+            Text = "Redirecting to the login page",
+            Json = JsonSerializer.Serialize(new { })
+        };
     }
 }

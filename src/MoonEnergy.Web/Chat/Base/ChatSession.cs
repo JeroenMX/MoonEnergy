@@ -19,5 +19,6 @@ public class ChatInteraction
 public class ChatAction
 {
     public required ChatActionType Action { get; init; }
+    public required string Name { get; init; }
     public required string ActionContentAsJson { get; init; }
 }

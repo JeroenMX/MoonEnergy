@@ -46,13 +46,19 @@ public class GetWeatherTool : IChatTool
         public string? Unit { get; set; }
     }
 
-    private static ChatToolResponse GetCurrentWeather(string location, string? unit)
+    private ChatToolResponse GetCurrentWeather(string location, string? unit)
     {
         unit ??= "celsius";
 
         var random = new Random();
         int temperature = random.Next(-50, 50);
 
-        return new ChatToolResponse(ChatActionType.Render, $"{temperature} {unit}", JsonSerializer.Serialize(new { temperature, unit }));
+        return new ChatToolResponse
+        {
+            ActionType = ChatActionType.Render,
+            Name = Name,
+            Text = $"{temperature} {unit}",
+            Json = JsonSerializer.Serialize(new { temperature, unit })
+        };
     }
 }

@@ -21,5 +21,6 @@ public class ChatMessage
 public class ChatAction
 {
     public required int Action { get; init; }
+    public required string Name { get; init; }
     public required string ContentAsJson { get; init; }
 }

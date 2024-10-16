@@ -50,16 +50,23 @@ public class GetTermijnbedragTool : IChatTool
         public string? PostcodeHuisnummer { get; set; }
     }
 
-    private static ChatToolResponse GetTermijnbedrag(string klantnummer, string postcodeHuisnummer)
+    private ChatToolResponse GetTermijnbedrag(string klantnummer, string postcodeHuisnummer)
     {
-        var actual = 30;
-        var ideal = 70;
+        var actual = 65;
+        var ideal = 80;
         var min = 60;
         var max = 100;
+        var message = "Het termijnbedrag is veel te laag en het advies is daarom om het te verhogen naar minimaal het ideale bedrag.";
         
-        var text = $"actual: {actual}. ideal: {ideal}. minimum: {min}. max: {max}. feedback: Het termijnbedrag is veel te laag. Dit zou zo snel mogelijk moeten worden aangepast.";
-        var json = JsonSerializer.Serialize(new { actual, ideal, min, max, text });
+        var text = $"actual: {actual}. ideal: {ideal}. minimum: {min}. max: {max}. feedback: {message}";
+        var json = JsonSerializer.Serialize(new { actual, ideal, min, max, message });
 
-        return new ChatToolResponse(ChatActionType.Render, text, json);
+        return new ChatToolResponse
+        {
+            ActionType = ChatActionType.Render,
+            Name = Name,
+            Text = text,
+            Json = json
+        };
     }
 }
