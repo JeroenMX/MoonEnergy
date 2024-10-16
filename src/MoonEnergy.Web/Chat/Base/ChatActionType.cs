@@ -1,4 +1,4 @@
-﻿namespace MoonEnergy.Controllers.Chat.Base;
+﻿namespace MoonEnergy.Chat.Base;
 
 public enum ChatActionType
 {

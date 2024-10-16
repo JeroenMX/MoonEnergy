@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
-using MoonEnergy.Controllers.Chat.Base;
+using MoonEnergy.Chat.Base;
 using OpenAI.Chat;
 
-namespace MoonEnergy.Controllers.Chat.ChatTools;
+namespace MoonEnergy.Chat.ChatTools;
 
 public class GetWeatherTool : IChatTool
 {
@@ -12,7 +12,7 @@ public class GetWeatherTool : IChatTool
     {
         var tool = new ChatToolBuilder()
             .Name(Name)
-            .Description("Get the current weather in a given location")
+            .Description("Get the current weather in a given location. To use this tool the user has to be logged in.")
             .AddParameter("location", p => p
                 .Type("string")
                 .Description("The city and state, e.g. San Francisco, CA")

@@ -10,9 +10,15 @@ interface ChatAction {
     actionContentAsJson?: string;
 }
 
+interface ChatMessage
+{
+    type: string;
+    text: string;
+}
+
 interface ChatInteraction {
     actions: ChatAction[];
-    message: string;
+    messages: ChatMessage[];
 }
 
 export { ChatActionType, ChatAction, ChatInteraction };

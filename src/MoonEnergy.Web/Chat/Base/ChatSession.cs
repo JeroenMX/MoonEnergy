@@ -1,6 +1,6 @@
 ﻿using OpenAI.Chat;
 
-namespace MoonEnergy.Controllers.Chat.Base;
+namespace MoonEnergy.Chat.Base;
 
 public class ChatSession
 {
@@ -19,5 +19,5 @@ public class ChatInteraction
 public class ChatAction
 {
     public required ChatActionType Action { get; init; }
-    public string? ActionContentAsJson { get; init; }
+    public required string ActionContentAsJson { get; init; }
 }

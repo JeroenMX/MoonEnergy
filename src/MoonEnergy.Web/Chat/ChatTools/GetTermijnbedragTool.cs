@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
-using MoonEnergy.Controllers.Chat.Base;
+using MoonEnergy.Chat.Base;
 using OpenAI.Chat;
 
-namespace MoonEnergy.Controllers.Chat.ChatTools;
+namespace MoonEnergy.Chat.ChatTools;
 
 public class GetTermijnbedragTool : IChatTool
 {

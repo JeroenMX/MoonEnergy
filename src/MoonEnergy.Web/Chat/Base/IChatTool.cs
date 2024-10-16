@@ -1,6 +1,6 @@
 ﻿using OpenAI.Chat;
 
-namespace MoonEnergy.Controllers.Chat.Base;
+namespace MoonEnergy.Chat.Base;
 
 public interface IChatTool
 {

@@ -1,14 +1,11 @@
 ﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using MoonEnergy.Controllers.Chat.Base;
+using MoonEnergy.Chat.Base;
 using OpenAI.Chat;
 
-namespace MoonEnergy.Controllers.Chat;
+namespace MoonEnergy.Chat;
 
-[ApiController]
-[Route("api/[controller]")]
-public class ChatController : ControllerBase
+public class ChatService
 {
     private readonly IEnumerable<IChatTool> _chatTools;
 
@@ -17,21 +14,13 @@ public class ChatController : ControllerBase
     private readonly OpenAiConfig _config;
     private static readonly Dictionary<string, ChatSession> _sessions = new();
 
-    public ChatController(IOptions<OpenAiConfig> config, IEnumerable<IChatTool> chatTools)
+    public ChatService(IOptions<OpenAiConfig> config, IEnumerable<IChatTool> chatTools)
     {
         _chatTools = chatTools;
         _config = config.Value;
     }
 
-    [HttpGet]
-    public IActionResult Get()
-    {
-        return Ok();
-    }
-
-    [HttpPost]
-    [Route("init")]
-    public async Task<IActionResult> PostInit([FromBody] string sessionId)
+    public async Task<ChatSession> Init(string sessionId, ClaimsPrincipal user)
     {
         if (!_sessions.TryGetValue(sessionId, out var chatSession))
         {
@@ -40,48 +29,70 @@ public class ChatController : ControllerBase
         }
 
         var chatClient = new ChatClient("gpt-4o", _config.Key);
-        var allMessages = chatSession.Interactions.SelectMany(x => x.Messages);
+        var chatOptions = GetChatCompletionOptions();
 
-        if (HandleUserLogin(chatSession))
+        // the user just authenticated or an authenticated user returned.
+        if (HandleUserLogin(chatSession, user) || chatSession.IsAuthenticated)
         {
             var chatInteraction = new ChatInteraction { Actions = [], Messages = [] };
             chatSession.Interactions.Add(chatInteraction);
 
             chatInteraction.Messages.Add(new SystemChatMessage(
-                $"Welcome user {chatSession.Name}, they have either just logged in or left and came back. Mention their first name in further conversations."));
+                @$"
+Welcome user {chatSession.Name}, they have either just logged in or came back after they left. 
+Mention their first name in further conversations. They cannot change their name anymore under no circumstance.
+They are now logged in. The conversation resumes and any previous question can now be answered and tools needed to be called can do so.
+"));
+            
+            var allMessages = chatSession.Interactions.SelectMany(x => x.Messages);
+            var completion = await chatClient.CompleteChatAsync(allMessages, chatOptions);
+            chatInteraction.Messages.Add(new AssistantChatMessage(completion));
+            
+            if (completion.Value.FinishReason == ChatFinishReason.ToolCalls)
+            {
+                foreach (var toolCall in completion.Value.ToolCalls)
+                {
+                    var toolContent = GetToolCallContent(toolCall);
+                    chatInteraction.Actions.Add(new ChatAction
+                        { Action = toolContent.ActionType, ActionContentAsJson = toolContent.Json });
+                    chatInteraction.Messages.Add(new ToolChatMessage(toolCall.Id, toolContent.Text));
+                }
 
+                allMessages = chatSession.Interactions.SelectMany(x => x.Messages);
+                completion = await chatClient.CompleteChatAsync(allMessages, chatOptions);
+                chatInteraction.Messages.Add(new AssistantChatMessage(completion));
+            }
+        }
+        else
+        {
+            var chatInteraction = new ChatInteraction { Actions = [], Messages = [] };
+            chatSession.Interactions.Add(chatInteraction);
+
+            chatInteraction.Messages.Add(new SystemChatMessage(
+                @$"
+An anonymous user just started a session. They are not logged in. Welcome them. Ask them their name unless they are going to login anyway. 
+Mention their first name in further conversations. When a tool requires a logged in user call the login tool.
+"));
+
+            var allMessages = chatSession.Interactions.SelectMany(x => x.Messages);
             var completion = await chatClient.CompleteChatAsync(allMessages);
             chatInteraction.Messages.Add(new AssistantChatMessage(completion));
-
-            var lastResponse = chatInteraction.Messages.Last().Content[0].Text;
-            return Ok(new { Response = lastResponse, Actions = new List<ChatAction>() });
         }
 
-        var chatInteraction2 = new ChatInteraction { Actions = [], Messages = [] };
-        chatSession.Interactions.Add(chatInteraction2);
-
-        chatInteraction2.Messages.Add(new SystemChatMessage(
-            $"A visitor just started a session. Welcome them."));
-        
-        var completion2 = await chatClient.CompleteChatAsync(allMessages);
-        chatInteraction2.Messages.Add(new AssistantChatMessage(completion2));
-        
-        var lastResponse2 = chatInteraction2.Messages.Last().Content[0].Text;
-        return Ok(new { Response = lastResponse2, Actions = new List<ChatAction>() });
+        return chatSession;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Post([FromBody] MessageModel message)
+    public async Task<ChatInteraction> Interact(string sessionId, string message)
     {
         var chatClient = new ChatClient("gpt-4o", _config.Key);
         var chatOptions = GetChatCompletionOptions();
 
-        if (!_sessions.TryGetValue(message.SessionId, out var chatSession))
+        if (!_sessions.TryGetValue(sessionId, out var chatSession))
         {
             throw new Exception("No init called?");
         }
 
-        var userQ = new UserChatMessage(message.Message);
+        var userQ = new UserChatMessage(message);
 
         var chatInteraction = new ChatInteraction
         {
@@ -110,12 +121,9 @@ public class ChatController : ControllerBase
             chatInteraction.Messages.Add(new AssistantChatMessage(completion));
         }
 
-        var lastResponse = chatInteraction.Messages.Last().Content[0].Text;
-        var actions = chatInteraction.Actions;
-
-        return Ok(new { Response = lastResponse, Actions = actions });
+        return chatInteraction;
     }
-
+    
     ChatToolResponse GetToolCallContent(ChatToolCall toolCall)
     {
         foreach (var chatTool in _chatTools)
@@ -128,12 +136,6 @@ public class ChatController : ControllerBase
 
         // Handle unexpected tool calls
         throw new NotImplementedException();
-    }
-
-    public class MessageModel
-    {
-        public string Message { get; set; } = null!;
-        public string SessionId { get; set; } = null!;
     }
 
     private ChatCompletionOptions GetChatCompletionOptions()
@@ -189,12 +191,12 @@ You only speak and understand Dutch. You refuse to write or understand any other
         return chatSession;
     }
 
-    private bool HandleUserLogin(ChatSession chatSession)
+    private bool HandleUserLogin(ChatSession chatSession, ClaimsPrincipal user)
     {
         // user just logged in. send a welcome!
-        if (HttpContext.User.Identity?.IsAuthenticated == true && chatSession.IsAuthenticated == false)
+        if (user.Identity?.IsAuthenticated == true && chatSession.IsAuthenticated == false)
         {
-            var userName = HttpContext.User.Claims.Single(x => x.Type == "name").Value;
+            var userName = user.Claims.Single(x => x.Type == "name").Value;
             chatSession.IsAuthenticated = true;
             chatSession.Name = userName;
 

@@ -17,6 +17,9 @@
 import {ref, onUpdated, onMounted} from 'vue';
 import {v4 as uuidv4} from 'uuid';
 import axios, {AxiosResponse} from "axios";
+import {ChatInteraction} from "./Models.ts";
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faSignInAlt } from '@fortawesome/free-solid-svg-icons'
 
 const userInput = ref('');
 const messages = ref([]);
@@ -44,17 +47,20 @@ const getUser = async () => {
 }
 
 onMounted(async () => {
-  
+
   const sessionIdFromQueryString = getQueryStringParameter('sessionId');
-  
+
   if (sessionIdFromQueryString == null) {
     sessionId.value = uuidv4();
-  }
-  else
-  {
+  } else {
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete('sessionId');
+    window.history.replaceState({}, document.title, url.toString());
+
     sessionId.value = sessionIdFromQueryString;
   }
-  
+
   const user = await getUser();
 
   if (user.status === 200) {
@@ -71,10 +77,12 @@ onMounted(async () => {
     body: JSON.stringify(sessionId.value),
   });
 
-  const chatInteraction = await response.json();
-  messages.value.push({type: 'api', text: chatInteraction.response});
-});
+  const conversation = await response.json();
 
+  conversation.forEach(i => {
+    renderInteraction(i);
+  });
+});
 
 const sendMessage = async () => {
   if (userInput.value.trim() === '' || isLoading.value) return;
@@ -103,15 +111,17 @@ const sendMessage = async () => {
     }
 
     const chatInteraction = await response.json();
-    messages.value.push({type: 'api', text: chatInteraction.response});
+    renderInteraction(chatInteraction);
 
     chatInteraction.actions.forEach(action => {
       // login
       if (action.action === 1) {
-        document.location.href = `/bff/login?returnUrl=/?sessionId=${sessionId.value}`;
+        setTimeout(() => {
+          document.location.href = `/bff/login?returnUrl=/?sessionId=${sessionId.value}`;
+        }, 5000);
       }
     });
-    
+
   } catch (error) {
     console.error('Error:', error);
     messages.value.push({type: 'error', text: 'An error occurred while processing your request.'});
@@ -119,6 +129,22 @@ const sendMessage = async () => {
     isLoading.value = false;
   }
 };
+
+function renderInteraction(chatInteraction: ChatInteraction) {
+  chatInteraction.messages.forEach(m => {
+    messages.value.push({type: m.type, text: m.text});
+  });
+  chatInteraction.actions.forEach(a => {
+    // dont do this. render a nice login picto
+    if (a.action === 1) {
+      messages.value.push({type: 'sys', text: 'user logged in !!'});
+    }
+  })
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // Helper function to get query string parameters
 function getQueryStringParameter(param: string): string | null {

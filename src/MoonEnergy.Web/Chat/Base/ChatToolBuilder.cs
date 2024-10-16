@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using OpenAI.Chat;
 
-namespace MoonEnergy.Controllers.Chat.Base;
+namespace MoonEnergy.Chat.Base;
 
 public class ChatToolBuilder
 {
