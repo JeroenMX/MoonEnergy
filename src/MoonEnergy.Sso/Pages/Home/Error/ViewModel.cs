@@ -3,7 +3,7 @@
 
 using Duende.IdentityServer.Models;
 
-namespace MoonEnergy.Sso.Pages.Error;
+namespace MoonEnergy.Sso.Pages.Home.Error;
 
 public class ViewModel
 {

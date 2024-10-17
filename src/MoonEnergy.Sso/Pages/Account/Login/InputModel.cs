@@ -3,7 +3,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace MoonEnergy.Sso.Pages.Login;
+namespace MoonEnergy.Sso.Pages.Account.Login;
 
 public class InputModel
 {

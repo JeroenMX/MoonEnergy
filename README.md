@@ -2,17 +2,22 @@
 
 ## Description
 
-MoonEnergy is a fictitious company selling moon energy and this solution contains an example AI Chatbot which 
-only knows Dutch for some reason and only has knowledge about this company but does have amazing self-service capabilities.
+MoonEnergy is a fictitious company selling moon energy and this solution contains an example AI Chatbot. 
 
 ## Features
 
 - Chat interface for interacting with OpenAI's API.
-- Ability to get weather information.
-- Manage user settings such as "Termijnbedrag".
-- Backend REST API services for handling chat functionalities.
+- Ability to get weather information. 'What's the weather in Amsterdam?'
+- Manage user information such as "Installment amount" or "Termijnbedrag".
+Examples: 'What is my installment amount?', 'Wat is mijn termijnbedrag', 'Change my installment amount' or 'Wijzig mijn termijnbdrag'
+- Backend REST API services for handling chat functionality.
+- Render json as part of the response.
 
 ## Getting Started
+
+1. Obtain your Open AI API key (see Configuration)
+2. Start both projects and frontend app
+3. When prompted to login use alice:alice or bob:bob as credentials. (can be changed in MoonEnergy.Sso/Pages/TestUsers.cs)
 
 ### Prerequisites
 
@@ -54,7 +59,7 @@ only knows Dutch for some reason and only has knowledge about this company but d
 
 2. **Configure API Key:**
 
-   Add the OpenAI API key to your `appsettings.json` file:
+   Add the OpenAI API key to your `appsettings.json` or better `appsettings.local.json` file:
     ```json
     {
       "OpenAI": {

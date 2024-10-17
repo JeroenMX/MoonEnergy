@@ -5,7 +5,7 @@ using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace MoonEnergy.Sso.Pages.Error;
+namespace MoonEnergy.Sso.Pages.Home.Error;
 
 [AllowAnonymous]
 [SecurityHeaders]

@@ -12,7 +12,9 @@ public class SetTermijnbedragTool : IChatTool
     {
         var tool = new ChatToolBuilder()
             .Name(Name)
-            .Description("Wijzig het huidige termijnbedrag.")
+            .Description(@"
+Wijzig het huidige termijnbedrag. Om deze tool te gebruiken moet de gebruiker ingelogd zijn.
+")
             .AddParameter("klantnummer", p => p
                 .Type("string")
                 .Description("Het klantnummer van de klant")
