@@ -2,7 +2,7 @@
 // See LICENSE in the project root for license information.
 
 
-namespace MoonEnergy.Sso.Pages.Logout;
+namespace MoonEnergy.Sso.Pages.Account.Logout;
 
 public static class LogoutOptions
 {

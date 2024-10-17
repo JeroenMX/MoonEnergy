@@ -1,7 +1,7 @@
 // Copyright (c) Duende Software. All rights reserved.
 // See LICENSE in the project root for license information.
 
-namespace MoonEnergy.Sso.Pages.Login;
+namespace MoonEnergy.Sso.Pages.Account.Login;
 
 public class ViewModel
 {

@@ -4,7 +4,7 @@
 // Copyright (c) Duende Software. All rights reserved.
 // See LICENSE in the project root for license information.
 
-namespace MoonEnergy.Sso.Pages.Logout;
+namespace MoonEnergy.Sso.Pages.Account.Logout;
 
 public class LoggedOutViewModel
 {

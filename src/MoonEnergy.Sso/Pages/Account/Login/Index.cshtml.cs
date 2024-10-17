@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace MoonEnergy.Sso.Pages.Login;
+namespace MoonEnergy.Sso.Pages.Account.Login;
 
 [SecurityHeaders]
 [AllowAnonymous]

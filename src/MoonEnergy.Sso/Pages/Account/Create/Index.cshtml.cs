@@ -5,12 +5,11 @@ using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Test;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace MoonEnergy.Sso.Pages.Create;
+namespace MoonEnergy.Sso.Pages.Account.Create;
 
 [SecurityHeaders]
 [AllowAnonymous]

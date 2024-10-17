@@ -1,7 +1,8 @@
-﻿using MoonEnergy.ChatTools.Base;
+﻿using System.Text.Json;
+using MoonEnergy.Chat.Base;
 using OpenAI.Chat;
 
-namespace MoonEnergy.ChatTools;
+namespace MoonEnergy.Chat.ChatTools;
 
 public class GetTermijnbedragTool : IChatTool
 {
@@ -10,7 +11,10 @@ public class GetTermijnbedragTool : IChatTool
     {
         var tool = new ChatToolBuilder()
             .Name(Name)
-            .Description("Haal het huidige termijnbedrag op. Wanneer de klant zijn termijnbedrag wil wijzigen haal je eerst deze gegevens op.")
+            .Description(@"
+Haal het huidige termijnbedrag op. Wanneer de klant zijn termijnbedrag wil wijzigen haal je eerst deze gegevens op. 
+Om deze tool te gebruiken moet de gebruiker ingelogd zijn.
+")
             .AddParameter("klantnummer", p => p
                 .Type("string")
                 .Description("Het klantnummer van de klant")
@@ -24,7 +28,7 @@ public class GetTermijnbedragTool : IChatTool
         return tool;
     }
     
-    public string Call(ChatToolCall chatToolCall)
+    public ChatToolResponse Call(ChatToolCall chatToolCall)
     {
         // Validate arguments before using them; it's not always guaranteed to be valid JSON!
 
@@ -49,8 +53,23 @@ public class GetTermijnbedragTool : IChatTool
         public string? PostcodeHuisnummer { get; set; }
     }
 
-    private static string GetTermijnbedrag(string klantnummer, string postcodeHuisnummer)
+    private ChatToolResponse GetTermijnbedrag(string klantnummer, string postcodeHuisnummer)
     {
-        return "actual: 30,00. ideal: 70. minimum: 60. max: 100. feedback: Het termijnbedrag is veel te laag. Dit zou zo snel mogelijk moeten worden aangepast.";
+        var actual = 65;
+        var ideal = 80;
+        var min = 60;
+        var max = 100;
+        var message = "Het termijnbedrag is veel te laag en het advies is daarom om het te verhogen naar minimaal het ideale bedrag.";
+        
+        var text = $"actual: {actual}. ideal: {ideal}. minimum: {min}. max: {max}. feedback: {message}";
+        var json = JsonSerializer.Serialize(new { actual, ideal, min, max, message });
+
+        return new ChatToolResponse
+        {
+            ActionType = ChatActionType.Render,
+            Name = Name,
+            Text = text,
+            Json = json
+        };
     }
 }

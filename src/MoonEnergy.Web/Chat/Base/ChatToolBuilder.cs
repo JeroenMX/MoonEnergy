@@ -1,6 +1,7 @@
-﻿using OpenAI.Chat;
+﻿using System.Text.Json;
+using OpenAI.Chat;
 
-namespace MoonEnergy.ChatTools.Base;
+namespace MoonEnergy.Chat.Base;
 
 public class ChatToolBuilder
 {
@@ -41,8 +42,8 @@ public class ChatToolBuilder
 
 public class FunctionParameterBuilder
 {
-    private readonly Dictionary<string, object> _properties = new Dictionary<string, object>();
-    private readonly List<string> _required = new List<string>();
+    private readonly Dictionary<string, object> _properties = new();
+    private readonly List<string> _required = new();
 
     public FunctionParameterBuilder AddProperty(string name, Action<PropertyBuilder> propertyAction)
     {
@@ -60,13 +61,14 @@ public class FunctionParameterBuilder
             properties = _properties,
             required = _required.Count > 0 ? _required : null
         };
-        return System.Text.Json.JsonSerializer.Serialize(result, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        
+        return JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
     }
 }
 
 public class PropertyBuilder
 {
-    private readonly Dictionary<string, object> _property = new Dictionary<string, object>();
+    private readonly Dictionary<string, object> _property = new();
     private readonly string _name;
     private readonly List<string> _requiredList;
 

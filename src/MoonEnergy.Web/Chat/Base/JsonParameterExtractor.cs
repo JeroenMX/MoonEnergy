@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace MoonEnergy.ChatTools.Base;
+namespace MoonEnergy.Chat.Base;
 
 public static class JsonParameterExtractor
 {

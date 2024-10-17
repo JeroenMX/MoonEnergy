@@ -1,16 +1,20 @@
-﻿using MoonEnergy.ChatTools.Base;
+﻿using System.Text.Json;
+using MoonEnergy.Chat.Base;
 using OpenAI.Chat;
 
-namespace MoonEnergy.ChatTools;
+namespace MoonEnergy.Chat.ChatTools;
 
 public class SetTermijnbedragTool : IChatTool
 {
     public string Name => nameof(SetTermijnbedragTool);
+
     public ChatTool Get()
     {
         var tool = new ChatToolBuilder()
             .Name(Name)
-            .Description("Wijzig het huidige termijnbedrag.")
+            .Description(@"
+Wijzig het huidige termijnbedrag. Om deze tool te gebruiken moet de gebruiker ingelogd zijn.
+")
             .AddParameter("klantnummer", p => p
                 .Type("string")
                 .Description("Het klantnummer van de klant")
@@ -27,31 +31,32 @@ public class SetTermijnbedragTool : IChatTool
 
         return tool;
     }
-    
-    public string Call(ChatToolCall chatToolCall)
+
+    public ChatToolResponse Call(ChatToolCall chatToolCall)
     {
         // Validate arguments before using them; it's not always guaranteed to be valid JSON!
 
-        var parameters = JsonParameterExtractor.ExtractParameters<TermijnbedagParameters>(chatToolCall.FunctionArguments);
+        var parameters =
+            JsonParameterExtractor.ExtractParameters<TermijnbedagParameters>(chatToolCall.FunctionArguments);
 
         if (parameters.Klantnummer == null)
         {
             throw new ArgumentException($"{nameof(parameters.Klantnummer)} is required");
         }
-        
+
         if (parameters.PostcodeHuisnummer == null)
         {
             throw new ArgumentException($"{nameof(parameters.PostcodeHuisnummer)} is required");
         }
-        
+
         if (parameters.Termijnbedrag == null)
         {
             throw new ArgumentException($"{nameof(parameters.Termijnbedrag)} is required");
         }
-        
+
         return SetTermijnbedrag(parameters.Klantnummer, parameters.PostcodeHuisnummer, parameters.Termijnbedrag);
     }
-    
+
     class TermijnbedagParameters
     {
         public string? Klantnummer { get; set; }
@@ -59,19 +64,37 @@ public class SetTermijnbedragTool : IChatTool
         public string? Termijnbedrag { get; set; }
     }
 
-    private static string SetTermijnbedrag(string klantnummer, string postcodeHuisnummer, string termijnbedrag)
+    private ChatToolResponse SetTermijnbedrag(string klantnummer, string postcodeHuisnummer, string termijnbedrag)
     {
         var tb = int.Parse(termijnbedrag);
 
         if (tb < 60)
         {
-            return "Het termijnbedrag mag niet lager zijn dan 60 euro";
+            return new ChatToolResponse
+            {
+                ActionType = ChatActionType.Render,
+                Name = Name,
+                Text = "Het termijnbedrag mag niet lager zijn dan 60 euro",
+                Json = JsonSerializer.Serialize(new { })
+            };
         }
         else if (tb > 100)
         {
-            return "Het termijnbedrag mag niet hoger zijn dan 100 euro";    
+            return new ChatToolResponse
+            {
+                ActionType = ChatActionType.Render,
+                Name = Name,
+                Text = "Het termijnbedrag mag niet hoger zijn dan 100 euro",
+                Json = JsonSerializer.Serialize(new { })
+            };
         }
-        
-        return $"Het termijnbedrag is aangepast naar {termijnbedrag} euro";
+
+        return new ChatToolResponse
+        {
+            ActionType = ChatActionType.Render,
+            Name = Name,
+            Text = $"Het termijnbedrag is aangepast naar {termijnbedrag} euro",
+            Json = JsonSerializer.Serialize(new { })
+        };
     }
 }
