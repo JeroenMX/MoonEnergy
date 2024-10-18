@@ -4,6 +4,7 @@ using MoonEnergy;
 using MoonEnergy.Chat;
 using MoonEnergy.Chat.Base;
 using MoonEnergy.Chat.ChatTools;
+using MoonEnergy.RealTime;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: true);
@@ -53,9 +54,20 @@ builder.Services.AddSingleton<IChatTool, LoginTool>();
 
 builder.Services.AddSingleton<ChatService>();
 
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true; // Enable detailed errors for debugging
+    options.MaximumReceiveMessageSize = 256 * 1024; // Set maximum message size to 256 KB (256 * 1024 bytes)
+})
+.AddMessagePackProtocol();
+
+builder.Services.AddSingleton<RealtimeService>();
+
 builder.Services.AddSpaStaticFiles(configuration => { configuration.RootPath = "clientapp"; });
 
 var app = builder.Build();
+
+app.MapHub<RealtimeHub>("/realtimehub");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -85,4 +97,8 @@ app.UseSpa(spa =>
 
 app.MapBffManagementEndpoints();
 
+var realtimeService = app.Services.GetRequiredService<RealtimeService>();
+await realtimeService.StartConnectionAsync();
+
 app.Run();
+

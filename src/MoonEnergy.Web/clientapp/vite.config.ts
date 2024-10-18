@@ -8,6 +8,11 @@ export default defineConfig({
         vue(),
         process.env.NODE_ENV === 'development' && mkcert()
     ],
+    resolve: {
+        alias: {
+            '@': '/src'
+        }
+    },
     server: {
         https: true,
         proxy: {
@@ -25,6 +30,12 @@ export default defineConfig({
                 target: 'https://localhost:5005',
                 secure: false,
                 changeOrigin: false
+            },
+            '/realtimehub': {
+                target: 'https://localhost:5005',
+                secure: false,
+                changeOrigin: false,
+                ws: true
             }
         },
         port: 5000
