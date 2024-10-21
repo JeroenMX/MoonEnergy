@@ -50,6 +50,7 @@ builder.Services.AddSingleton<IChatTool, GetWeatherTool>();
 builder.Services.AddSingleton<IChatTool, GetTermijnbedragTool>();
 builder.Services.AddSingleton<IChatTool, SetTermijnbedragTool>();
 builder.Services.AddSingleton<IChatTool, LoginTool>();
+builder.Services.AddSingleton<IChatTool, GetEnergyConsumptionTool>();
 
 builder.Services.AddSingleton<ChatService>();
 

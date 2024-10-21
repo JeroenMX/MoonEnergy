@@ -15,11 +15,11 @@ public class GetTermijnbedragTool : IChatTool
 Haal het huidige termijnbedrag op. Wanneer de klant zijn termijnbedrag wil wijzigen haal je eerst deze gegevens op. 
 Om deze tool te gebruiken moet de gebruiker ingelogd zijn.
 ")
-            .AddParameter("klantnummer", p => p
+            .AddParameter(nameof(TermijnbedagParameters.Klantnummer), p => p
                 .Type("string")
                 .Description("Het klantnummer van de klant")
                 .Required())
-            .AddParameter("postcodeHuisnummer", p => p
+            .AddParameter(nameof(TermijnbedagParameters.PostcodeHuisnummer), p => p
                 .Type("string")
                 .Description("De postcode en het huisnummer van de klant")
                 .Required())
@@ -28,7 +28,7 @@ Om deze tool te gebruiken moet de gebruiker ingelogd zijn.
         return tool;
     }
     
-    public ChatToolResponse Call(ChatToolCall chatToolCall)
+    public ChatToolResponse Call(ChatToolCall chatToolCall, UserState? userState)
     {
         // Validate arguments before using them; it's not always guaranteed to be valid JSON!
 
@@ -55,10 +55,10 @@ Om deze tool te gebruiken moet de gebruiker ingelogd zijn.
 
     private ChatToolResponse GetTermijnbedrag(string klantnummer, string postcodeHuisnummer)
     {
-        var actual = 65;
-        var ideal = 80;
-        var min = 60;
-        var max = 100;
+        var actual = 110;
+        var ideal = 100;
+        var min = 40;
+        var max = 200;
         var message = "Het termijnbedrag is veel te laag en het advies is daarom om het te verhogen naar minimaal het ideale bedrag.";
         
         var text = $"actual: {actual}. ideal: {ideal}. minimum: {min}. max: {max}. feedback: {message}";

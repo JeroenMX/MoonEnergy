@@ -32,7 +32,7 @@ Wijzig het huidige termijnbedrag. Om deze tool te gebruiken moet de gebruiker in
         return tool;
     }
 
-    public ChatToolResponse Call(ChatToolCall chatToolCall)
+    public ChatToolResponse Call(ChatToolCall chatToolCall, UserState? userState)
     {
         // Validate arguments before using them; it's not always guaranteed to be valid JSON!
 

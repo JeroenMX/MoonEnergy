@@ -2,8 +2,8 @@
 
 public class ChatToolResponse
 {
-    public required ChatActionType ActionType { get; init; }
+    public ChatActionType ActionType { get; init; } = ChatActionType.None;
     public required string Name { get; init; }
     public required string Text { get; init; }
-    public required string Json { get; init; }
+    public string? Json { get; init; }
 }

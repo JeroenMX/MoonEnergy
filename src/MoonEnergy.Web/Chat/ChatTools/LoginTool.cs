@@ -27,7 +27,7 @@ Mention they will be redirected shortly to complete the login procedure.
         return tool;
     }
 
-    public ChatToolResponse Call(ChatToolCall chatToolCall)
+    public ChatToolResponse Call(ChatToolCall chatToolCall, UserState? userState)
     {
         return new ChatToolResponse
         {

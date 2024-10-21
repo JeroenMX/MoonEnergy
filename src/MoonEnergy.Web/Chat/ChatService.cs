@@ -31,17 +31,21 @@ public class ChatService
         var chatClient = new ChatClient("gpt-4o", _config.Key);
         var chatOptions = GetChatCompletionOptions();
 
+        HandleUserLogin(chatSession, user);
+        
         // the user just authenticated or an authenticated user returned.
-        if (HandleUserLogin(chatSession, user) || chatSession.IsAuthenticated)
+        if (chatSession.IsAuthenticated)
         {
             var chatInteraction = new ChatInteraction { Actions = [], Messages = [] };
             chatSession.Interactions.Add(chatInteraction);
 
             chatInteraction.Messages.Add(new SystemChatMessage(
                 @$"
-Welcome user {chatSession.Name}, they have either just logged in or came back after they left. 
-Mention their first name in further conversations. They cannot change their name anymore under no circumstance.
+Welcome user {chatSession.UserState!.CustomerName}, they have either just logged in or came back after they left. 
+Mention their first name in further conversations. 
 They are now logged in. The conversation resumes and any previous question can now be answered and tools needed to be called can do so.
+Use this information about the user. customer number: {chatSession.UserState!.CustomerNumber}, postalcode: {chatSession.UserState!.PostalCode}, housnumber: {chatSession.UserState!.HouseNumber} 
+They cannot change the above information under no circumstance.
 "));
             
             var allMessages = chatSession.Interactions.SelectMany(x => x.Messages);
@@ -52,12 +56,12 @@ They are now logged in. The conversation resumes and any previous question can n
             {
                 foreach (var toolCall in completion.Value.ToolCalls)
                 {
-                    var toolContent = GetToolCallContent(toolCall);
+                    var toolContent = GetToolCallContent(toolCall, chatSession.UserState);
                     chatInteraction.Actions.Add(new ChatAction
                     {
                         Action = toolContent.ActionType,
                         Name = toolContent.Name,
-                        ActionContentAsJson = toolContent.Json
+                        ContentAsJson = toolContent.Json
                     });
                     chatInteraction.Messages.Add(new ToolChatMessage(toolCall.Id, toolContent.Text));
                 }
@@ -114,12 +118,12 @@ Mention their first name in further conversations. When a tool requires a logged
         {
             foreach (var toolCall in completion.Value.ToolCalls)
             {
-                var toolContent = GetToolCallContent(toolCall);
+                var toolContent = GetToolCallContent(toolCall, chatSession.UserState);
                 chatInteraction.Actions.Add(new ChatAction
                 {
                     Action = toolContent.ActionType,
                     Name = toolContent.Name,
-                    ActionContentAsJson = toolContent.Json
+                    ContentAsJson = toolContent.Json
                 });
                 chatInteraction.Messages.Add(new ToolChatMessage(toolCall.Id, toolContent.Text));
             }
@@ -132,13 +136,13 @@ Mention their first name in further conversations. When a tool requires a logged
         return chatInteraction;
     }
     
-    ChatToolResponse GetToolCallContent(ChatToolCall toolCall)
+    ChatToolResponse GetToolCallContent(ChatToolCall toolCall, UserState? userState)
     {
         foreach (var chatTool in _chatTools)
         {
             if (toolCall.FunctionName == chatTool.Name)
             {
-                return chatTool.Call(toolCall);
+                return chatTool.Call(toolCall, userState);
             }
         }
 
@@ -204,9 +208,9 @@ You only speak and understand Dutch. You refuse to write or understand any other
         // user just logged in. send a welcome!
         if (user.Identity?.IsAuthenticated == true && chatSession.IsAuthenticated == false)
         {
-            var userName = user.Claims.Single(x => x.Type == "name").Value;
+            var name = user.Claims.Single(x => x.Type == "name").Value;
             chatSession.IsAuthenticated = true;
-            chatSession.Name = userName;
+            chatSession.UserState = new UserState(name);
 
             return true;
         }
