@@ -57,6 +57,13 @@ export default defineComponent({
             ],
           },
           options: {
+            animation: {
+              duration: 2000, // duration of the animation in milliseconds
+              easing: 'easeInOutQuad', // easing function
+              onComplete: function() {
+                console.log('Animation complete!');
+              }
+            },
             scales: {
               y: {
                 beginAtZero: true,

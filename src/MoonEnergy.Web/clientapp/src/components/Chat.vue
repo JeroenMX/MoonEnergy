@@ -12,8 +12,8 @@
       </div>
     </div>
     <div class="input-area">
-      <input v-model="userInput" @keyup.enter="sendMessage" placeholder="Type your message...">
-      <button @click="sendMessage" :disabled="isLoading">Send</button>
+      <input class="form-control" v-model="userInput" @keyup.enter="sendMessage" placeholder="Type your message..." autofocus>
+      <button class="btn btn-primary" @click="sendMessage" :disabled="isLoading">Send</button>
     </div>
   </div>
 </template>
