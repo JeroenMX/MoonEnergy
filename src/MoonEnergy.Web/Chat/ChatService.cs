@@ -7,12 +7,9 @@ namespace MoonEnergy.Chat;
 
 public class ChatService
 {
-    private readonly IEnumerable<IChatTool> _chatTools;
-
-    //private static Dictionary<Guid, ChatHistory> _sessions;
-    //private IFunctionHandler _functionHandler;
     private readonly OpenAiConfig _config;
-    private static readonly Dictionary<string, ChatSession> _sessions = new();
+    private readonly IEnumerable<IChatTool> _chatTools;
+    private static readonly Dictionary<string, ChatSession> Sessions = new();
 
     public ChatService(IOptions<OpenAiConfig> config, IEnumerable<IChatTool> chatTools)
     {
@@ -22,10 +19,10 @@ public class ChatService
 
     public async Task<ChatSession> Init(string sessionId, ClaimsPrincipal user)
     {
-        if (!_sessions.TryGetValue(sessionId, out var chatSession))
+        if (!Sessions.TryGetValue(sessionId, out var chatSession))
         {
             chatSession = await InitChatSession(sessionId);
-            _sessions[chatSession.SessionId] = chatSession;
+            Sessions[chatSession.SessionId] = chatSession;
         }
 
         var chatClient = new ChatClient(_config.Model, _config.Key);
@@ -46,6 +43,21 @@ public class ChatService
         return chatSession;
     }
 
+    public async Task<ChatInteraction> Interact(string sessionId, string message)
+    {
+        var chatClient = new ChatClient(_config.Model, _config.Key);
+        var chatOptions = GetChatCompletionOptions();
+
+        if (!Sessions.TryGetValue(sessionId, out var chatSession))
+        {
+            throw new Exception("No init called?");
+        }
+
+        var userQ = new UserChatMessage(message);
+
+        return await CreateInteraction(chatClient, chatOptions, chatSession, userQ);
+    }
+    
     private async Task CreateAuthenticatedSession(ChatClient chatClient, ChatCompletionOptions chatOptions,
         ChatSession chatSession)
     {
@@ -71,21 +83,6 @@ Mention their first name in further conversations. When a tool requires a logged
         await CreateInteraction(chatClient, chatOptions, chatSession, message);
     }
 
-    public async Task<ChatInteraction> Interact(string sessionId, string message)
-    {
-        var chatClient = new ChatClient(_config.Model, _config.Key);
-        var chatOptions = GetChatCompletionOptions();
-
-        if (!_sessions.TryGetValue(sessionId, out var chatSession))
-        {
-            throw new Exception("No init called?");
-        }
-
-        var userQ = new UserChatMessage(message);
-
-        return await CreateInteraction(chatClient, chatOptions, chatSession, userQ);
-    }
-
     private async Task<ChatInteraction> CreateInteraction(ChatClient chatClient, ChatCompletionOptions chatOptions,
         ChatSession chatSession, ChatMessage chatMessage)
     {
@@ -97,7 +94,6 @@ Mention their first name in further conversations. When a tool requires a logged
 
         chatSession.Interactions.Add(chatInteraction);
         var allMessages = chatSession.Interactions.SelectMany(x => x.Messages);
-
         var completion = await chatClient.CompleteChatAsync(allMessages, chatOptions);
         chatInteraction.Messages.Add(new AssistantChatMessage(completion));
 
@@ -157,7 +153,7 @@ Mention their first name in further conversations. When a tool requires a logged
     private static async Task<ChatSession> InitChatSession(string sessionId)
     {
         var chatSession = new ChatSession { SessionId = sessionId, Interactions = new() };
-        _sessions[sessionId] = chatSession;
+        Sessions[sessionId] = chatSession;
 
         var systemMessage = new SystemChatMessage(
             @"
