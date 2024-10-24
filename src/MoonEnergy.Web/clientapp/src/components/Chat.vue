@@ -26,6 +26,7 @@ import {ChatInteraction} from "./Models.ts";
 import LoginComponent from "./LoginComponent.vue";
 import GetTermijnBedragComponent from "./GetTermijnBedragComponent.vue";
 import GetEnergyConsumptionComponent from "./GetEnergyConsumptionComponent.vue";
+import ErrorComponent from "./ErrorComponent.vue";
 
 const userInput = ref('');
 const chat = ref<ChatInteraction[]>([]);
@@ -37,7 +38,8 @@ const userName = ref()
 const components = {
   LoginTool: LoginComponent,
   GetTermijnbedragTool: GetTermijnBedragComponent,
-  GetEnergyConsumptionTool: GetEnergyConsumptionComponent
+  GetEnergyConsumptionTool: GetEnergyConsumptionComponent,
+  Error: ErrorComponent
 };
 
 const getUser = async () => {

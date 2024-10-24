@@ -1,4 +1,6 @@
-﻿using System.Security.Claims;
+﻿using System.ClientModel;
+using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.Extensions.Options;
 using MoonEnergy.Chat.Base;
 using OpenAI.Chat;
@@ -57,7 +59,7 @@ public class ChatService
 
         return await CreateInteraction(chatClient, chatOptions, chatSession, userQ);
     }
-    
+
     private async Task CreateAuthenticatedSession(ChatClient chatClient, ChatCompletionOptions chatOptions,
         ChatSession chatSession)
     {
@@ -91,30 +93,47 @@ Mention their first name in further conversations. When a tool requires a logged
             Actions = [],
             Messages = [chatMessage]
         };
-
+        
         chatSession.Interactions.Add(chatInteraction);
-        var allMessages = chatSession.Interactions.SelectMany(x => x.Messages);
-        var completion = await chatClient.CompleteChatAsync(allMessages, chatOptions);
-        chatInteraction.Messages.Add(new AssistantChatMessage(completion));
 
-        if (completion.Value.FinishReason == ChatFinishReason.ToolCalls)
+        try
         {
-            foreach (var toolCall in completion.Value.ToolCalls)
-            {
-                var toolContent = GetToolCallContent(toolCall, chatSession.UserState);
-                chatInteraction.Actions.Add(new ChatAction
-                {
-                    Action = toolContent.ActionType,
-                    Name = toolContent.Name,
-                    ContentAsJson = toolContent.Json
-                });
-
-                chatInteraction.Messages.Add(new ToolChatMessage(toolCall.Id, toolContent.Text));
-            }
-
-            allMessages = chatSession.Interactions.SelectMany(x => x.Messages);
-            completion = await chatClient.CompleteChatAsync(allMessages, chatOptions);
+            var allMessages = chatSession.Interactions.SelectMany(x => x.Messages);
+            var completion = await chatClient.CompleteChatAsync(allMessages, chatOptions);
             chatInteraction.Messages.Add(new AssistantChatMessage(completion));
+
+            if (completion.Value.FinishReason == ChatFinishReason.ToolCalls)
+            {
+                foreach (var toolCall in completion.Value.ToolCalls)
+                {
+                    var toolContent = GetToolCallContent(toolCall, chatSession.UserState);
+                    chatInteraction.Actions.Add(new ChatAction
+                    {
+                        Action = toolContent.ActionType,
+                        Name = toolContent.Name,
+                        ContentAsJson = toolContent.Json
+                    });
+
+                    chatInteraction.Messages.Add(new ToolChatMessage(toolCall.Id, toolContent.Text));
+                }
+
+                allMessages = chatSession.Interactions.SelectMany(x => x.Messages);
+                completion = await chatClient.CompleteChatAsync(allMessages, chatOptions);
+                chatInteraction.Messages.Add(new AssistantChatMessage(completion));
+            }
+        }
+        catch (ClientResultException e)
+        {
+            chatInteraction.Actions.Add(new ChatAction
+            {
+                Action = ChatActionType.Error,
+                Name = "Error",
+                ContentAsJson = JsonSerializer.Serialize(new
+                {
+                    e.Status,
+                    e.Message
+                }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
+            });
         }
 
         return chatInteraction;

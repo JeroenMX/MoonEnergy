@@ -1,3 +1,4 @@
+using System.Text.Json;
 using IdentityModel.Client;
 using Microsoft.IdentityModel.Tokens;
 using MoonEnergy;
@@ -41,7 +42,10 @@ builder.Services.AddAuthentication(options =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+});;
 builder.Services.AddAuthorization();
 
 builder.Services.Configure<OpenAiConfig>(builder.Configuration.GetSection("OpenAI"));

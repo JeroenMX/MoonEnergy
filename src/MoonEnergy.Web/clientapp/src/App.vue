@@ -3,7 +3,7 @@ import Chat from './components/Chat.vue'
 </script>
 
 <template>
-  <Chat msg="Vite + Vue" />
+  <Chat />
 </template>
 
 <style scoped>
