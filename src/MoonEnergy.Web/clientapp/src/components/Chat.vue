@@ -1,5 +1,4 @@
 <template>
-  <div id="currentUser">{{ userName }}</div>
   <div class="chat-container">
     <div class="messages" ref="messagesContainer">
       <div v-for="(interaction, chatIndex) in chat" :key="chatIndex">
@@ -12,28 +11,29 @@
       </div>
     </div>
     <div class="input-area">
-      <input class="form-control" v-model="userInput" @keyup.enter="sendMessage" placeholder="Type your message..." autofocus>
+      <input class="form-control" v-model="userInput" @keyup.enter="sendMessage" placeholder="Type your message..."
+             autofocus>
       <button class="btn btn-primary" @click="sendMessage" :disabled="isLoading">Send</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {ref, onUpdated, onMounted} from 'vue';
+import {onMounted, onUpdated, ref} from 'vue';
 import {v4 as uuidv4} from 'uuid';
-import axios, {AxiosResponse} from "axios";
 import {ChatInteraction} from "./Models.ts";
 import LoginComponent from "./LoginComponent.vue";
 import GetTermijnBedragComponent from "./GetTermijnBedragComponent.vue";
 import GetEnergyConsumptionComponent from "./GetEnergyConsumptionComponent.vue";
 import ErrorComponent from "./ErrorComponent.vue";
+import {InitChat, SendChat} from "../services/ChatService.ts";
+import {Interaction} from "chart.js";
 
 const userInput = ref('');
 const chat = ref<ChatInteraction[]>([]);
 const isLoading = ref(false);
 const messagesContainer = ref(null);
 const sessionId = ref('');
-const userName = ref()
 
 const components = {
   LoginTool: LoginComponent,
@@ -42,105 +42,103 @@ const components = {
   Error: ErrorComponent
 };
 
-const getUser = async () => {
-  const config = {
-    headers: {
-      'X-CSRF': '1'
-    }
-  }
-
-  return await axios.get('/bff/user', {
-    ...config,
-    validateStatus: function (status) {
-      return true;  // Resolve promise for all HTTP status codes
-    }
-  });
-}
-
 onMounted(async () => {
 
-  const sessionIdFromQueryString = getQueryStringParameter('sessionId');
+  isLoading.value = true;
+  sessionId.value = getSessionId();
 
-  if (sessionIdFromQueryString == null) {
-    sessionId.value = uuidv4();
-  } else {
+  try {
+    const interactions = await InitChat(sessionId.value);
 
-    const url = new URL(window.location.href);
-    url.searchParams.delete('sessionId');
-    window.history.replaceState({}, document.title, url.toString());
-
-    sessionId.value = sessionIdFromQueryString;
+    for (const interaction of interactions) {
+      await handleInteraction(interaction);
+    }
+  } catch (error) {
+    const errorMessage = createChatMessage('An error occurred while processing your request.', 'error');
+    const errorInteraction = createInteraction(errorMessage);
+    chat.value.push(errorInteraction);
+  } finally {
+    isLoading.value = false;
   }
-
-  const user = await getUser();
-
-  if (user.status === 200) {
-    userName.value = user.data.find(x => x.type === 'name').value;
-  } else {
-    userName.value = "not logged in"
-  }
-
-  const response = await fetch('/api/chat/init', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(sessionId.value),
-  });
-
-  chat.value = await response.json();
 });
 
 const sendMessage = async () => {
   if (userInput.value.trim() === '' || isLoading.value) return;
 
   const message = userInput.value;
-
-  const messageText = userInput.value;
-  const userMessage: ChatMessage = {type: 'user', text: messageText};
-  const userChatInteraction: ChatInteraction = {messages: [userMessage], actions: []};
+  const userMessage = createChatMessage(message, 'user');
+  const userChatInteraction = createInteraction(userMessage);
   chat.value.push(userChatInteraction);
 
   userInput.value = '';
   isLoading.value = true;
 
-  const payload = {
-    message,
-    sessionId: sessionId.value
-  };
-
   try {
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error('API request failed');
-    }
-
-    const chatInteraction = await response.json();
-    chat.value.push(chatInteraction);
-
-    chatInteraction.actions.forEach(action => {
-      // login
-      if (action.action === 1) {
-        setTimeout(() => {
-          document.location.href = `/bff/login?returnUrl=/?sessionId=${sessionId.value}`;
-        }, 5000);
-      }
-    });
-
+    const interaction = await SendChat(sessionId.value, message);
+    await handleInteraction(interaction);
   } catch (error) {
     console.error('Error:', error);
-    messages.value.push({type: 'error', text: 'An error occurred while processing your request.'});
+    const errorMessage = createChatMessage('An error occurred while processing your request.', 'error');
+    userChatInteraction.messages.push(errorMessage);
   } finally {
     isLoading.value = false;
   }
 };
+
+function createInteraction(message: ChatMessage | null): ChatInteraction {
+  const chatMessage: ChatMessage = {messages: [], actions: []};
+
+  if (message != null) {
+    chatMessage.messages.push(message);
+  }
+
+  return chatMessage;
+}
+
+function createChatMessage(message: string, type: string): ChatInteraction {
+  return {type: type, text: message};
+}
+
+function getSessionId(): string {
+  let sessionId: string = null;
+
+  const sessionIdFromQueryString = getQueryStringParameter('sessionId');
+
+  if (sessionIdFromQueryString == null) {
+    sessionId = uuidv4();
+  } else {
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete('sessionId');
+    window.history.replaceState({}, document.title, url.toString());
+
+    sessionId = sessionIdFromQueryString;
+  }
+
+  return sessionId;
+}
+
+async function handleInteraction(interaction: ChatInteraction): Promise<void> {
+  chat.value.push(interaction);
+
+  interaction.actions.forEach(action => {
+    // login
+    if (action.action === 1) {
+      handleLogin();
+    }
+  });
+}
+
+function handleLogin(): Promise<void> {
+  setTimeout(() => {
+        document.location.href = ` / bff / login ? returnUrl = /?sessionId=${sessionId.value}`;
+      }
+
+      ,
+      5000
+  )
+  ;
+}
 
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));

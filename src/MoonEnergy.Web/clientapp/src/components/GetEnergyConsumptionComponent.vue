@@ -85,7 +85,9 @@ export default defineComponent({
 
 <style scoped>
 canvas {
-  max-width: 600px;
+  max-width: 100%;
   margin: auto;
+  display: block; /* Center it horizontally in its container */
+  width: 100%; /* This scales the element, but not the drawing surface */
 }
 </style>
