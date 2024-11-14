@@ -47,7 +47,7 @@ public class ChatController : ControllerBase
             {
                 Name = a.Name,
                 Action = (int)a.Action,
-                ContentAsJson = a.ActionContentAsJson
+                ContentAsJson = a.ContentAsJson
             }).ToList(),
             Messages = chatInteraction.Messages
                 .Where(m => (m is UserChatMessage && includeUserMessages) || m is AssistantChatMessage)

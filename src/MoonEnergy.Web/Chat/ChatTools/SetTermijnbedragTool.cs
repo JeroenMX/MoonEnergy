@@ -32,7 +32,7 @@ Wijzig het huidige termijnbedrag. Om deze tool te gebruiken moet de gebruiker in
         return tool;
     }
 
-    public ChatToolResponse Call(ChatToolCall chatToolCall)
+    public ChatToolResponse Call(ChatToolCall chatToolCall, SessionState sessionState)
     {
         // Validate arguments before using them; it's not always guaranteed to be valid JSON!
 
@@ -53,8 +53,13 @@ Wijzig het huidige termijnbedrag. Om deze tool te gebruiken moet de gebruiker in
         {
             throw new ArgumentException($"{nameof(parameters.Termijnbedrag)} is required");
         }
+        
+        if (sessionState.UserState == null)
+        {
+            return new ChatToolResponse { Name = Name, Text = "The user is nog logged in." };
+        }
 
-        return SetTermijnbedrag(parameters.Klantnummer, parameters.PostcodeHuisnummer, parameters.Termijnbedrag);
+        return SetTermijnbedrag(parameters.Termijnbedrag, sessionState.UserState);
     }
 
     class TermijnbedagParameters
@@ -64,7 +69,7 @@ Wijzig het huidige termijnbedrag. Om deze tool te gebruiken moet de gebruiker in
         public string? Termijnbedrag { get; set; }
     }
 
-    private ChatToolResponse SetTermijnbedrag(string klantnummer, string postcodeHuisnummer, string termijnbedrag)
+    private ChatToolResponse SetTermijnbedrag(string termijnbedrag, UserState userState)
     {
         var tb = int.Parse(termijnbedrag);
 
@@ -88,6 +93,8 @@ Wijzig het huidige termijnbedrag. Om deze tool te gebruiken moet de gebruiker in
                 Json = JsonSerializer.Serialize(new { })
             };
         }
+
+        userState.Electricity.InstallmentAmountCurrent = tb;
 
         return new ChatToolResponse
         {

@@ -4,10 +4,13 @@ namespace MoonEnergy.Chat.Base;
 
 public class ChatSession
 {
-    public bool IsAuthenticated { get; set; } = false;
-    public string? Name { get; set; }
-    public required string SessionId { get; set; }
-    public required List<ChatInteraction> Interactions { get; set; }
+    public SessionState SessionState { get; set; }
+    public List<ChatInteraction> Interactions { get; } = new();
+    
+    public ChatSession(string sessionId)
+    {
+        SessionState = new SessionState(sessionId);
+    }
 }
 
 public class ChatInteraction
@@ -20,5 +23,5 @@ public class ChatAction
 {
     public required ChatActionType Action { get; init; }
     public required string Name { get; init; }
-    public required string ActionContentAsJson { get; init; }
+    public string? ContentAsJson { get; init; }
 }

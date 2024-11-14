@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoonEnergy.Web", "MoonEnergy.Web\MoonEnergy.Web.csproj", "{7A52CE75-3096-4747-B71B-4C474081BA92}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoonEnergy.Web", "src\MoonEnergy.Web\MoonEnergy.Web.csproj", "{7A52CE75-3096-4747-B71B-4C474081BA92}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoonEnergy.Sso", "MoonEnergy.Sso\MoonEnergy.Sso.csproj", "{A11A0A0F-CB15-431D-B69A-418120D4CB4F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoonEnergy.Sso", "src\MoonEnergy.Sso\MoonEnergy.Sso.csproj", "{A11A0A0F-CB15-431D-B69A-418120D4CB4F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

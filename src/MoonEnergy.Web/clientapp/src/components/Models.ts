@@ -11,8 +11,7 @@ interface ChatAction {
     contentAsJson: string;
 }
 
-interface ChatMessage
-{
+interface ChatMessage {
     type: string;
     text: string;
 }
@@ -22,4 +21,8 @@ interface ChatInteraction {
     messages: ChatMessage[];
 }
 
-export { ChatActionType, ChatAction, ChatInteraction };
+interface ComponentDictionary {
+    [key: string]: any;
+}
+
+export {ChatActionType, ChatAction, ChatMessage, ChatInteraction, ComponentDictionary};
