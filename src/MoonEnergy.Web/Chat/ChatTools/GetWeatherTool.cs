@@ -26,7 +26,7 @@ public class GetWeatherTool : IChatTool
         return tool;
     }
 
-    public ChatToolResponse Call(ChatToolCall chatToolCall, UserState? userState)
+    public ChatToolResponse Call(ChatToolCall chatToolCall, SessionState? userState)
     {
         // Validate arguments before using them; it's not always guaranteed to be valid JSON!
 

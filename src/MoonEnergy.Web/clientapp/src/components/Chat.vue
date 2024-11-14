@@ -2,10 +2,10 @@
   <div class="chat-container">
     <div class="messages" ref="messagesContainer">
       <div v-for="(interaction, chatIndex) in chat" :key="chatIndex">
-        <div v-for="(message, messageIndex) in interaction.messages" :key="index" :class="message.type">
+        <div v-for="(message, messageIndex) in interaction.messages" :key="messageIndex" :class="message.type">
           {{ message.text }}
         </div>
-        <div v-for="(action, actionIndex) in interaction.actions" :key="index">
+        <div v-for="(action, actionIndex) in interaction.actions" :key="actionIndex">
           <component :is="components[action.name]" :data="action.contentAsJson"/>
         </div>
       </div>
@@ -21,13 +21,12 @@
 <script setup lang="ts">
 import {onMounted, onUpdated, ref} from 'vue';
 import {v4 as uuidv4} from 'uuid';
-import {ChatInteraction} from "./Models.ts";
+import {ChatInteraction, ChatMessage, ComponentDictionary} from "./Models.ts";
 import LoginComponent from "./LoginComponent.vue";
 import GetTermijnBedragComponent from "./GetTermijnBedragComponent.vue";
 import GetEnergyConsumptionComponent from "./GetEnergyConsumptionComponent.vue";
 import ErrorComponent from "./ErrorComponent.vue";
 import {InitChat, SendChat} from "../services/ChatService.ts";
-import {Interaction} from "chart.js";
 
 const userInput = ref('');
 const chat = ref<ChatInteraction[]>([]);
@@ -35,7 +34,7 @@ const isLoading = ref(false);
 const messagesContainer = ref(null);
 const sessionId = ref('');
 
-const components = {
+const components: ComponentDictionary = {
   LoginTool: LoginComponent,
   GetTermijnbedragTool: GetTermijnBedragComponent,
   GetEnergyConsumptionTool: GetEnergyConsumptionComponent,
@@ -86,7 +85,7 @@ const sendMessage = async () => {
 };
 
 function createInteraction(message: ChatMessage | null): ChatInteraction {
-  const chatMessage: ChatMessage = {messages: [], actions: []};
+  const chatMessage: ChatInteraction = {messages: [], actions: []};
 
   if (message != null) {
     chatMessage.messages.push(message);
@@ -95,12 +94,12 @@ function createInteraction(message: ChatMessage | null): ChatInteraction {
   return chatMessage;
 }
 
-function createChatMessage(message: string, type: string): ChatInteraction {
+function createChatMessage(message: string, type: string): ChatMessage {
   return {type: type, text: message};
 }
 
 function getSessionId(): string {
-  let sessionId: string = null;
+  let sessionId: string | null = null;
 
   const sessionIdFromQueryString = getQueryStringParameter('sessionId');
 
@@ -118,30 +117,8 @@ function getSessionId(): string {
   return sessionId;
 }
 
-async function handleInteraction(interaction: ChatInteraction): Promise<void> {
+function handleInteraction(interaction: ChatInteraction): void {
   chat.value.push(interaction);
-
-  interaction.actions.forEach(action => {
-    // login
-    if (action.action === 1) {
-      handleLogin();
-    }
-  });
-}
-
-function handleLogin(): Promise<void> {
-  setTimeout(() => {
-        document.location.href = ` / bff / login ? returnUrl = /?sessionId=${sessionId.value}`;
-      }
-
-      ,
-      5000
-  )
-  ;
-}
-
-function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // Helper function to get query string parameters

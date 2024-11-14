@@ -1,13 +1,30 @@
 ﻿namespace MoonEnergy;
 
 // Fake the user's data. This would normally come from a database.
+public class SessionState
+{
+    public string SessionId { get; }
+    public bool IsAuthenticated { get; private set; }
+    public UserState? UserState { get; private set; }
+    
+    public SessionState(string sessionId)
+    {
+        SessionId = sessionId;
+    }
+
+    public void SetUser(string name)
+    {
+        IsAuthenticated = true;
+        UserState = new UserState(name);
+    }
+}
+
 public class UserState
 {
-    public UserState(string customerName)
+    public UserState(string name)
     {
         CustomerNumber = 1234567;
-        CustomerName = customerName;
-        
+        CustomerName = name;
         PostalCode = "1234AA";
         HouseNumber = 1;
 
@@ -23,6 +40,7 @@ public class UserState
             ThisMonthUsage =thisMonthUsage.ToArray()
         };
     }
+    
     public int CustomerNumber { get; init; }
     public string CustomerName { get; init; }
     public string PostalCode { get; init; }

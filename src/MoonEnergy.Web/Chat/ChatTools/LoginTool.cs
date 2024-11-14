@@ -27,14 +27,14 @@ Mention they will be redirected shortly to complete the login procedure.
         return tool;
     }
 
-    public ChatToolResponse Call(ChatToolCall chatToolCall, UserState? userState)
+    public ChatToolResponse Call(ChatToolCall chatToolCall, SessionState sessionState)
     {
         return new ChatToolResponse
         {
             ActionType = ChatActionType.Login,
             Name = Name,
             Text = "Redirecting to the login page",
-            Json = JsonSerializer.Serialize(new { })
+            Json = JsonSerializer.Serialize(new { sessionId = sessionState.SessionId })
         };
     }
 }

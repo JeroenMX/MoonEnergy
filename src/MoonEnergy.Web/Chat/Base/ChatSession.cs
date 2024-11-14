@@ -4,10 +4,13 @@ namespace MoonEnergy.Chat.Base;
 
 public class ChatSession
 {
-    public bool IsAuthenticated { get; set; }
-    public UserState? UserState { get; set; }
-    public required string SessionId { get; set; }
-    public required List<ChatInteraction> Interactions { get; set; }
+    public SessionState SessionState { get; set; }
+    public List<ChatInteraction> Interactions { get; } = new();
+    
+    public ChatSession(string sessionId)
+    {
+        SessionState = new SessionState(sessionId);
+    }
 }
 
 public class ChatInteraction

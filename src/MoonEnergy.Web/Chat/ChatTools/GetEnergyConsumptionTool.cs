@@ -26,7 +26,7 @@ To use this tool the user has to be logged in.
         return tool;
     }
 
-    public ChatToolResponse Call(ChatToolCall chatToolCall, UserState? userState)
+    public ChatToolResponse Call(ChatToolCall chatToolCall, SessionState sessionState)
     {
         // Validate arguments before using them; it's not always guaranteed to be valid JSON!
 
@@ -38,12 +38,12 @@ To use this tool the user has to be logged in.
             return new ChatToolResponse { Name = Name, Text = $"{nameof(parameters.period)} is required" };
         }
 
-        if (userState == null)
+        if (sessionState.UserState == null)
         {
             return new ChatToolResponse { Name = Name, Text = "The user is nog logged in." };
         }
 
-        return GetConsumption(userState, parameters.period);
+        return GetConsumption(sessionState.UserState, parameters.period);
     }
 
     class Parameters

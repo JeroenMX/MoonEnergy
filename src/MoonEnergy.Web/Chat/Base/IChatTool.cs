@@ -6,5 +6,5 @@ public interface IChatTool
 {
     public string Name { get; }
     ChatTool Get();
-    ChatToolResponse Call(ChatToolCall chatToolCall, UserState? userState);
+    ChatToolResponse Call(ChatToolCall chatToolCall, SessionState sessionState);
 }

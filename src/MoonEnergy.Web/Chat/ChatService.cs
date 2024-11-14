@@ -24,7 +24,7 @@ public class ChatService
         if (!Sessions.TryGetValue(sessionId, out var chatSession))
         {
             chatSession = await InitChatSession(sessionId);
-            Sessions[chatSession.SessionId] = chatSession;
+            Sessions[chatSession.SessionState.SessionId] = chatSession;
         }
 
         var chatClient = new ChatClient(_config.Model, _config.Key);
@@ -33,7 +33,7 @@ public class ChatService
         HandleUserLogin(chatSession, user);
 
         // the user just authenticated or an authenticated user returned.
-        if (chatSession.IsAuthenticated)
+        if (chatSession.SessionState.IsAuthenticated)
         {
             await CreateAuthenticatedSession(chatClient, chatOptions, chatSession);
         }
@@ -64,10 +64,10 @@ public class ChatService
         ChatSession chatSession)
     {
         var message = new SystemChatMessage(@$"
-Welcome user {chatSession.UserState!.CustomerName}, they have either just logged in or came back after they left. 
+Welcome user {chatSession.SessionState.UserState!.CustomerName}, they have either just logged in or came back after they left. 
 Mention their first name in further conversations. 
 They are now logged in. The conversation resumes and any previous question can now be answered and tools needed to be called can do so.
-Use this information about the user. customer number: {chatSession.UserState!.CustomerNumber}, postalcode: {chatSession.UserState!.PostalCode}, housnumber: {chatSession.UserState!.HouseNumber} 
+Use this information about the user. customer number: {chatSession.SessionState.UserState!.CustomerNumber}, postalcode: {chatSession.SessionState.UserState!.PostalCode}, housnumber: {chatSession.SessionState.UserState!.HouseNumber} 
 They cannot change the above information under no circumstance.
 ");
 
@@ -106,7 +106,7 @@ Mention their first name in further conversations. When a tool requires a logged
             {
                 foreach (var toolCall in completion.Value.ToolCalls)
                 {
-                    var toolContent = GetToolCallContent(toolCall, chatSession.UserState);
+                    var toolContent = GetToolCallContent(toolCall, chatSession.SessionState);
                     chatInteraction.Actions.Add(new ChatAction
                     {
                         Action = toolContent.ActionType,
@@ -139,7 +139,7 @@ Mention their first name in further conversations. When a tool requires a logged
         return chatInteraction;
     }
 
-    ChatToolResponse GetToolCallContent(ChatToolCall toolCall, UserState? userState)
+    ChatToolResponse GetToolCallContent(ChatToolCall toolCall, SessionState? userState)
     {
         var tool = _chatTools.SingleOrDefault(x => x.Name == toolCall.FunctionName);
 
@@ -171,7 +171,7 @@ Mention their first name in further conversations. When a tool requires a logged
 
     private static async Task<ChatSession> InitChatSession(string sessionId)
     {
-        var chatSession = new ChatSession { SessionId = sessionId, Interactions = new() };
+        var chatSession = new ChatSession(sessionId);
         Sessions[sessionId] = chatSession;
 
         var systemMessage = new SystemChatMessage(
@@ -213,11 +213,10 @@ Your responses must strictly adhere to these guidelines.
     private bool HandleUserLogin(ChatSession chatSession, ClaimsPrincipal user)
     {
         // user just logged in. send a welcome!
-        if (user.Identity?.IsAuthenticated == true && chatSession.IsAuthenticated == false)
+        if (user.Identity?.IsAuthenticated == true && chatSession.SessionState.IsAuthenticated == false)
         {
             var name = user.Claims.Single(x => x.Type == "name").Value;
-            chatSession.IsAuthenticated = true;
-            chatSession.UserState = new UserState(name);
+            chatSession.SessionState.SetUser(name);
 
             return true;
         }
